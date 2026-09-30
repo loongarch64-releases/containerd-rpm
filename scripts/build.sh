@@ -27,9 +27,8 @@ prepare()
     echo "📦 [Prepare] Setting up build environment..."
     
     # TODO: 在此处添加准备命令
-    # 例如：apt-get update && apt-get install -y build-essential
-    # 例如：git clone -b ${VERSION} --depth=1 https://github.com/loongarch64-releases/containerd-rpm ${SRCS}/${VERSION}
-    # 例如：patch -p1 < patches/loongarch-fix.patch
+    rm -rf ${SRCS}/${VERSION}
+    git clone -b loong64-containerd --depth=1 https://github.com/loongarch64-releases/docker-packaging ${SRCS}/${VERSION}
     
     echo "✅ [Prepare] Environment ready."
 }
@@ -42,6 +41,17 @@ build()
     # TODO: 在此处添加编译命令
     # 例如：make -j$(nproc) ARCH=loongarch64
     # 例如：cmake -DCMAKE_BUILD_TYPE=Release .. && make
+    (
+        cd ${SRCS}/${VERSION}
+        (
+            cd pkg/containerd
+            docker buildx build -f rpm.Dockerfile --target pkg \
+            --build-context scripts=../../hack/scripts \
+            --build-arg PKG_REF=${VERSION} \
+            -o type=local,dest=../../bin/pkg/containerd/anolis23 \
+            . 
+        )
+    )
     
 
     echo "✅ [Build] Compilation finished."
@@ -52,9 +62,11 @@ post_build()
 {
     echo "📦 [Post-Build] Organizing artifacts..."
     
+    rm -rf dists/${VERSION}
+    mkdir -p dists/${VERSION}
     # TODO: 在此处添加整理命令
-    # 例如：mkdir -p dists && cp binary dist/
-    # 例如：strip dist/binary
+    local binary_path=$(find ./srcs/${VERSION}/bin -name  '*.rpm')
+    mkdir -p dists && cp $binary_path dists/${VERSION}/
     
     echo "✅ [Post-Build] Artifacts ready in ./dists/${VERSION}."
 }

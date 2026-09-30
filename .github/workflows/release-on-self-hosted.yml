@@ -1,11 +1,13 @@
 name: Auto Build containerd-rpm (Self hosted)
 
 on:
+  schedule:
+    - cron: '0 16 * * *'
   workflow_dispatch:
 
 env:
-  UPSTREAM_OWNER: "loongarch64-releases"
-  UPSTREAM_REPO: "containerd-rpm"
+  UPSTREAM_OWNER: "containerd"
+  UPSTREAM_REPO: "containerd"
 
 jobs:
   build-and-release:
@@ -42,12 +44,11 @@ jobs:
         if: steps.get_version.outputs.skip_workflow != 'true'
         run: |
           VERSION="${{ steps.get_version.outputs.version }}"
-          chmod +x ./scripts/build_in_docker.sh
-          ./scripts/build_in_docker.sh "$VERSION"
+          ./scripts/build.sh "$VERSION"
 
       - name: Upload Release
         if: steps.get_version.outputs.skip_workflow != 'true'
         run: |
           VERSION="${{ steps.get_version.outputs.version }}"
           chmod +x ./scripts/release.sh
-          ./scripts/release.sh "$VERSION"
+          ./scripts/release.sh "$VERSION" 'loongarch64'
