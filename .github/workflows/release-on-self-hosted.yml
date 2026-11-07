@@ -2,7 +2,7 @@ name: Auto Build containerd-rpm (Self hosted)
 
 on:
   schedule:
-    - cron: '0 16 * * *'
+    - cron: '29 2 * * *'
   workflow_dispatch:
 
 env:
